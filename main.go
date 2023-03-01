@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/mjfagundez/login/login"
-	"os"
 )
 
 func handleError(err error) {
@@ -13,8 +14,7 @@ func handleError(err error) {
 	os.Exit(1)
 }
 
-func main() {
-	// urlExample := "postgres://username:password@localhost:5432/database_name"
+func run() error {
 	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		handleError(fmt.Errorf("unable to connect to database: %w", err))
@@ -25,9 +25,13 @@ func main() {
 	var weight int64
 	err = conn.QueryRow(context.Background(), "select name, weight from widgets where id=$1", 42).Scan(&name, &weight)
 	if err != nil {
-		handleError(fmt.Errorf("query row failed: %w", err))
+		return fmt.Errorf("query row failed: %w", err)
 	}
-
 	fmt.Println(name, weight)
+	return nil
+}
+
+func main() {
+
 	login.LoginInterface()
 }
