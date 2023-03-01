@@ -32,6 +32,9 @@ func run() error {
 }
 
 func main() {
-
+	err := run()
+	if err != nil {
+		handleError(fmt.Errorf("error running query: %w", err))
+	}
 	login.LoginInterface()
 }
