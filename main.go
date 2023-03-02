@@ -14,16 +14,16 @@ func handleError(err error) {
 	os.Exit(1)
 }
 
-func run(ctx context.Context, dbURL string) error {
-	conn, err := pgx.Connect(ctx, dbURL)
+func run() error {
+	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
-		return fmt.Errorf("unable to connect to database: %w", err)
+		handleError(fmt.Errorf("unable to connect to database: %w", err))
 	}
-	defer conn.Close(ctx)
+	defer conn.Close(context.Background())
 
 	var name string
 	var weight int64
-	err = conn.QueryRow(ctx, "select name, weight from widgets where id=$1", 42).Scan(&name, &weight)
+	err = conn.QueryRow(context.Background(), "select name, weight from widgets where id=$1", 42).Scan(&name, &weight)
 	if err != nil {
 		return fmt.Errorf("query row failed: %w", err)
 	}
@@ -32,14 +32,7 @@ func run(ctx context.Context, dbURL string) error {
 }
 
 func main() {
-	ctx := context.Background()
-
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		handleError(fmt.Errorf("DATABASE_URL environment variable not set"))
-	}
-
-	err := run(ctx, dbURL)
+	err := run()
 	if err != nil {
 		handleError(fmt.Errorf("error running query: %w", err))
 	}
